@@ -1,6 +1,6 @@
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\test\java\com\example\PostgreSQLDataBaseConnect\controllers\AuthorControllerIntegrationTests.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\test\java\com\example\PostgreSQLDataBaseConnect\controllers\BookControllerIntegrationTests.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\test\java\com\example\PostgreSQLDataBaseConnect\PostgreSqlDataBaseConnectApplicationTests.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\test\java\com\example\PostgreSQLDataBaseConnect\repositories\AuthorRepositoryIntegrationTests.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\test\java\com\example\PostgreSQLDataBaseConnect\repositories\BookRepositoryIntegrationTests.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\test\java\com\example\PostgreSQLDataBaseConnect\TestDataUtil.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/test/java/com/example/PostgreSQLDataBaseConnect/PostgreSqlDataBaseConnectApplicationTests.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/test/java/com/example/PostgreSQLDataBaseConnect/TestDataUtil.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/test/java/com/example/PostgreSQLDataBaseConnect/controllers/AuthorControllerIntegrationTests.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/test/java/com/example/PostgreSQLDataBaseConnect/controllers/BookControllerIntegrationTests.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/test/java/com/example/PostgreSQLDataBaseConnect/repositories/AuthorRepositoryIntegrationTests.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/test/java/com/example/PostgreSQLDataBaseConnect/repositories/BookRepositoryIntegrationTests.java

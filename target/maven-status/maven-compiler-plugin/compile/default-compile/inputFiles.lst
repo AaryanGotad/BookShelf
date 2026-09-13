@@ -1,17 +1,17 @@
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\config\MapperConfig.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\controllers\AuthorController.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\controllers\BookController.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\domain\dto\AuthorDto.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\domain\dto\BookDto.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\domain\entities\AuthorEntity.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\domain\entities\BookEntity.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\mappers\impl\AuthorMapper.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\mappers\impl\BookMapper.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\mappers\Mapper.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\PostgreSqlDataBaseConnectApplication.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\respositories\AuthorRepository.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\respositories\BookRepository.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\services\AuthorService.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\services\BookService.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\services\impl\AuthorServiceImpl.java
-C:\Users\Aaryan Gotad\Documents\GitHub\javapractice\SpringBoot Practice\PostgreSQLDataBaseConnect\src\main\java\com\example\PostgreSQLDataBaseConnect\services\impl\BookServiceImpl.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/PostgreSqlDataBaseConnectApplication.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/config/MapperConfig.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/controllers/AuthorController.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/controllers/BookController.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/domain/dto/AuthorDto.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/domain/dto/BookDto.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/domain/entities/AuthorEntity.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/domain/entities/BookEntity.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/mappers/Mapper.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/mappers/impl/AuthorMapper.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/mappers/impl/BookMapper.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/respositories/AuthorRepository.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/respositories/BookRepository.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/services/AuthorService.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/services/BookService.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/services/impl/AuthorServiceImpl.java
+/workspaces/SpringBoot-CRUD-REST-API-Learning-project/src/main/java/com/example/PostgreSQLDataBaseConnect/services/impl/BookServiceImpl.java
