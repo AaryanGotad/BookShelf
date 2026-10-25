@@ -459,4 +459,4 @@ BookShelf is a learning project, so it's missing a few things a production API w
 
 ## License
 
-There's no license file in this repository yet.
+See [LICENSE](LICENSE) for the project license.
