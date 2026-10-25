@@ -1,8 +1,48 @@
-# Spring Boot CRUD REST API
+# BookShelf
 
-This project is a learning-focused REST API built with Spring Boot. It models a small library domain containing authors and books, persists that data with Spring Data JPA, and exposes HTTP endpoints for creating, reading, updating, and deleting both resources.
+BookShelf is a small REST API I built to learn Spring Boot. It keeps track of authors and books, saves them in a PostgreSQL database with Spring Data JPA, and lets you create, read, update, and delete both through HTTP endpoints.
 
-The application follows a conventional layered architecture:
+It's the project where I learned Spring Boot, and I used what I learned here directly when building Structura afterwards.
+
+Want to try it? Jump to [Local PostgreSQL Setup](#local-postgresql-setup).
+
+---
+
+## Project Goals
+
+I made BookShelf for one reason: to learn Spring Boot. I wanted to understand how a REST API is put together, how a database gets added to it, and how all the pieces fit. Spring Boot is widely used for big company software, so I also wanted to see, even at a small scale, how that kind of project is structured.
+
+Here's what I set out to do:
+
+1. Describe my data with JPA entities.
+2. Save those entities through Spring Data repositories.
+3. Keep database classes separate from the classes the API sends and receives (DTOs).
+4. Put the business logic behind service interfaces.
+5. Turn HTTP requests into service calls with controllers.
+6. Check that the repositories and endpoints work with integration tests.
+
+---
+
+## Features
+
+- REST endpoints for authors and books
+- Full create, read, update, and delete for authors
+- Create-or-update for books with `PUT /books/{isbn}`
+- Partial updates with `PATCH`
+- Pagination on the book list endpoint
+- PostgreSQL storage for normal runs
+- An in-memory H2 database for integration tests
+- DTO and entity separation using ModelMapper
+- A JPA relationship between books and authors
+- Repository queries: derived queries, plus a custom JPQL query for author ages
+- Spring Boot Actuator as a dependency, for operational endpoints
+- Docker configuration for packaging the app
+
+---
+
+## Architecture
+
+BookShelf follows the usual controller-service-repository layout. Here's how the pieces connect:
 
 ```mermaid
 graph TD
@@ -18,100 +58,86 @@ graph TD
 	BR --> DB
 ```
 
-> **Current scope:** This repository contains a backend API only. There is no frontend, authentication layer, ML model, or external API client in the source tree. The sections below describe what is implemented and leave explicit placeholders where you can add your own explanation later.
-
-## Features
-
-- REST endpoints for authors and books
-- Full author CRUD workflow
-- Book create-or-update workflow using `PUT /books/{isbn}`
-- Partial updates using HTTP `PATCH`
-- Pagination for the book collection endpoint
-- PostgreSQL persistence for normal application runs
-- H2 in-memory database configured for integration tests
-- DTO/entity separation using ModelMapper
-- JPA relationship between books and authors
-- Repository-level derived queries and a custom JPQL query for author ages
-- Spring Boot Actuator dependency for operational endpoints
-- Docker image configuration for packaging the application
-
-## Project Goals
-
-This repository appears to be a practical exercise in building a CRUD service with Spring Boot. The learning path is:
-
-1. Define a domain model with JPA entities.
-2. Persist entities through Spring Data repositories.
-3. Keep database-facing entities separate from API-facing DTOs.
-4. Put business operations behind service interfaces.
-5. Translate HTTP requests into service calls through controllers.
-6. Verify repository and HTTP behavior with integration tests.
-
-### Add your project context here
-
-Use this section to describe why you created the project, what you were learning, and what you would like a reader to understand after exploring it.
-
-## Architecture
-
-The application follows a controller-service-repository flow:
+And here's the path a request takes:
 
 ```text
 Request JSON -> Controller -> Service -> Repository -> PostgreSQL
-				 |             |
-				 v             v
-			  DTO mapping   update rules
+                    |            |
+                    v            v
+              DTO mapping   update rules
 ```
 
-Controllers are the HTTP boundary. They accept JSON, call service interfaces, map entities to DTOs, and choose the main response status codes. Services contain the application operations such as existence checks and partial updates. Repositories are Spring Data interfaces whose implementations and standard CRUD queries are generated at runtime.
+- **Controllers** are the front door. They accept JSON, call the services, turn entities into DTOs, and pick the main response status codes.
+- **Services** hold the app's operations, like checking whether something exists and applying partial updates.
+- **Repositories** are Spring Data interfaces. Spring writes their implementations, including the standard create, read, update, and delete queries, when the app starts.
+
+Two terms you'll see a lot: an **entity** is a Java class that maps to a database table, and a **DTO** (data transfer object) is the shape of the data the API sends and receives.
+
+---
 
 ## Domain Model
 
-The application has two resources: authors and books.
+There are two resources: authors and books.
 
 ### Author
 
-An author is stored in the `authors` table:
+Authors are stored in the `authors` table:
 
-| Field | Java type | Role |
-|-------|-----------|------|
+| Field | Java type | What it is |
+|-------|-----------|------------|
 | `id` | `Long` | Generated primary key |
 | `name` | `String` | Author name |
 | `age` | `Integer` | Author age |
 
-`AuthorEntity` is a JPA entity mapped to `authors`. Its ID uses a sequence-generation strategy. `AuthorDto` currently has the same three fields, but remains separate from the database class so the API contract can evolve independently.
+`AuthorEntity` is the JPA entity mapped to `authors`, and its ID is generated from a sequence. `AuthorDto` has the same three fields for now, but I keep it separate from the database class so the API can change without touching the database model.
 
 ### Book
 
-A book is stored in the `books` table:
+Books are stored in the `books` table:
 
-| Field | Java type | Role |
-|-------|-----------|------|
-| `isbn` | `String` | Primary key and URL identifier |
+| Field | Java type | What it is |
+|-------|-----------|------------|
+| `isbn` | `String` | Primary key, also used in the URL |
 | `title` | `String` | Book title |
 | `author` | `AuthorEntity` | Many-to-one relationship |
 
-`BookEntity` uses `isbn` as its primary key and joins to authors through the `author_id` column. The Java model defines the relationship from book to author; `AuthorEntity` does not currently contain a collection of books.
+`BookEntity` uses `isbn` as its primary key and joins to authors through the `author_id` column. The relationship goes from book to author only. `AuthorEntity` doesn't have a list of its books.
 
-```text
-authors.id  <---- books.author_id
-	1                 many
+```mermaid
+erDiagram
+    AUTHORS ||--o{ BOOKS : "writes"
+    AUTHORS {
+        bigint id PK
+        string name
+        int age
+    }
+    BOOKS {
+        string isbn PK
+        string title
+        bigint author_id FK
+    }
 ```
 
-The relationship uses `CascadeType.ALL`, so saving a book can also persist its associated author. Deletion and other lifecycle operations should therefore be considered carefully in a production application.
+The relationship uses `CascadeType.ALL`, so saving a book can also save its author. That's handy, but deletes and other operations can spread further than you'd expect, so it needs care in a real application.
+
+---
 
 ## DTO Mapping
 
-The API uses DTOs so controllers do not expose JPA entities directly:
+The API uses DTOs so the controllers never expose JPA entities directly:
 
-- `AuthorDto` represents author data at the API boundary.
-- `BookDto` represents book data and contains an embedded `AuthorDto`.
-- `Mapper<A, B>` defines `mapTo` and `mapFrom` operations.
-- `AuthorMapper` and `BookMapper` implement that interface with ModelMapper.
+- `AuthorDto` is the author data the API sends and receives.
+- `BookDto` is the book data, with an `AuthorDto` inside it.
+- `Mapper<A, B>` defines two operations, `mapTo` and `mapFrom`.
+- `AuthorMapper` and `BookMapper` implement it using ModelMapper.
 
-`MapperConfig` registers a shared ModelMapper bean and uses the `LOOSE` matching strategy. This maps compatible fields between DTOs and entities, including the nested author structure in a book.
+`MapperConfig` registers one shared ModelMapper and uses the `LOOSE` matching strategy. That lets it map compatible fields between DTOs and entities, including the nested author inside a book.
+
+---
 
 ## API Reference
 
-The application listens on port `8080` by default, or on the value supplied by the `PORT` environment variable.
+The app runs on port `8080` by default, or on whatever you set in the `PORT` environment variable.
 
 ### Authors
 
@@ -121,123 +147,127 @@ Creates an author. The database generates the ID.
 
 ```json
 {
-	"name": "Abigail Rose",
-	"age": 80
+  "name": "Abigail Rose",
+  "age": 80
 }
 ```
 
-Returns `201 Created` with the saved author, including its generated ID:
+Returns `201 Created` with the saved author, including its new ID:
 
 ```json
 {
-	"id": 1,
-	"name": "Abigail Rose",
-	"age": 80
+  "id": 1,
+  "name": "Abigail Rose",
+  "age": 80
 }
 ```
 
 #### `GET /authors`
 
-Returns all authors as a JSON array with `200 OK`.
+Returns all authors as a JSON array, with `200 OK`.
 
 #### `GET /authors/{id}`
 
-Returns one author by numeric ID. It returns `200 OK` when found and `404 Not Found` otherwise.
+Returns one author by numeric ID: `200 OK` if it's found, `404 Not Found` if not.
 
 #### `PUT /authors/{id}`
 
-Performs a full replacement of an existing author. The path ID is assigned to the request before saving, so the path is authoritative.
+Replaces an existing author completely. The ID in the path is assigned to the request before saving, so the path always wins.
 
 ```json
 {
-	"name": "Thomas Cronin",
-	"age": 44
+  "name": "Thomas Cronin",
+  "age": 44
 }
 ```
 
-It returns `200 OK` when the author exists and `404 Not Found` otherwise.
+Returns `200 OK` if the author exists, `404 Not Found` if not.
 
 #### `PATCH /authors/{id}`
 
-Partially updates an existing author. Only non-null request fields are copied onto the stored author.
+Updates only some of an existing author's fields. Only the fields you send (the non-null ones) are copied onto the stored author.
 
 ```json
 {
-	"name": "Updated Name"
+  "name": "Updated Name"
 }
 ```
 
-It returns `200 OK` with the updated author or `404 Not Found` when the ID is missing.
+Returns `200 OK` with the updated author, or `404 Not Found` if the ID doesn't exist.
 
 #### `DELETE /authors/{id}`
 
-Deletes the author and returns `204 No Content`. The current controller returns the same status even when the ID does not exist.
+Deletes the author and returns `204 No Content`. The controller currently returns the same status even if the ID doesn't exist.
 
 ### Books
 
 #### `PUT /books/{isbn}`
 
-Creates a book when the ISBN does not exist, or replaces the book when it does:
+Creates the book if the ISBN is new, or replaces it if the ISBN already exists:
 
-- `201 Created` when a new ISBN is inserted
+- `201 Created` when a new ISBN is added
 - `200 OK` when an existing ISBN is updated
 
-The ISBN in the URL is assigned to the entity before saving, making the path ISBN authoritative over the request body.
+The ISBN in the URL is assigned to the entity before saving, so the URL wins over the request body.
 
 ```json
 {
-	"isbn": "978-1-2345-6789-0",
-	"title": "The Shadow in the Attic",
-	"author": {
-		"name": "Abigail Rose",
-		"age": 80
-	}
+  "isbn": "978-1-2345-6789-0",
+  "title": "The Shadow in the Attic",
+  "author": {
+    "name": "Abigail Rose",
+    "age": 80
+  }
 }
 ```
 
-The response contains the saved ISBN, title, and nested author. The author ID is generated when a new author is persisted.
+The response contains the saved ISBN, title, and nested author. When a new author is saved along with the book, the database generates its ID.
 
 #### `GET /books`
 
-Returns a paginated collection of books. Spring injects the `Pageable` argument from query parameters:
+Returns a page of books. Spring fills in the `Pageable` argument from the query parameters:
 
 ```text
 GET /books?page=0&size=10
 GET /books?page=1&size=5&sort=title,asc
 ```
 
-The response is a Spring `Page` representation containing `content` and pagination metadata such as `number`, `size`, `totalElements`, and `totalPages`.
+The response is Spring's `Page` format: a `content` list plus pagination details like `number`, `size`, `totalElements`, and `totalPages`.
 
 #### `GET /books/{isbn}`
 
-Returns one book by ISBN with `200 OK`, or `404 Not Found` when no matching book exists.
+Returns one book by ISBN with `200 OK`, or `404 Not Found` if there's no match.
 
 #### `PATCH /books/{isbn}`
 
-Partially updates an existing book. The current service updates the title when a non-null title is supplied. The ISBN is retained from the URL, and the nested author is not selectively updated by this method.
+Partially updates an existing book. For now, the service only updates the title, and only when you send one. The ISBN comes from the URL, and the nested author isn't touched by this method.
 
-It returns `200 OK` with the updated book or `404 Not Found` when the ISBN is missing.
+Returns `200 OK` with the updated book, or `404 Not Found` if the ISBN doesn't exist.
 
 #### `DELETE /books/{isbn}`
 
-Deletes the book identified by ISBN and returns `204 No Content`. Missing ISBNs receive the same response.
+Deletes the book with that ISBN and returns `204 No Content`. A missing ISBN gets the same response.
+
+---
 
 ## Repository Queries
 
-`AuthorRepository` demonstrates two query styles:
+`AuthorRepository` shows two ways to write a query:
 
 ```java
 Iterable<AuthorEntity> findByAgeLessThan(int age);
 ```
 
-Spring Data derives the query from the method name.
+Here, Spring Data builds the query from the method name.
 
 ```java
 @Query("SELECT a from AuthorEntity a where a.age > ?1")
 Iterable<AuthorEntity> findAuthorsWithAgeGreaterThan(int age);
 ```
 
-This is JPQL, not raw SQL. It refers to the entity class and Java field rather than directly naming database tables and columns. These methods are covered by repository integration tests but are not currently exposed through an HTTP endpoint.
+This one is JPQL, not raw SQL. It refers to the entity class and its Java fields instead of database tables and columns. Both methods are covered by repository integration tests, but I haven't exposed them through an HTTP endpoint.
+
+---
 
 ## Technology Stack
 
@@ -256,26 +286,30 @@ This is JPQL, not raw SQL. It refers to the entity class and Java field rather t
 | Containerization | Docker |
 | Testing | JUnit 5, Spring Boot Test, MockMvc, AssertJ |
 
+---
+
 ## Configuration
 
-The application reads PostgreSQL connection settings from environment variables:
+The app reads its PostgreSQL settings from environment variables:
 
-| Variable | Purpose |
-|----------|---------|
+| Variable | What it's for |
+|----------|---------------|
 | `SPRING_DATASOURCE_URL` | JDBC connection URL |
 | `SPRING_DATASOURCE_USERNAME` | Database username |
 | `SPRING_DATASOURCE_PASSWORD` | Database password |
-| `PORT` | HTTP port, defaulting to `8080` |
+| `PORT` | HTTP port, `8080` by default |
 
-The normal configuration uses the PostgreSQL driver and:
+The normal configuration uses the PostgreSQL driver and this setting:
 
 ```properties
 spring.jpa.hibernate.ddl-auto=update
 ```
 
-`ddl-auto=update` allows Hibernate to update the schema from the entity model during development. For production, schema migrations with Flyway or Liquibase are generally safer and reproducible.
+`ddl-auto=update` lets Hibernate update the database schema from the entity classes, which is handy while developing. For production, schema migrations with Flyway or Liquibase are safer and repeatable.
 
-The application sets the JVM default timezone to `Asia/Kolkata` at startup. There are currently no date/time fields in the domain model, but this setting may affect future temporal values and logs.
+The app sets the JVM's default timezone to `Asia/Kolkata` at startup. There are no date or time fields in the domain model yet, but this could affect future date values and logs.
+
+---
 
 ## Local PostgreSQL Setup
 
@@ -285,7 +319,7 @@ The included `docker-compose.yml` starts PostgreSQL 16:
 docker compose up -d db
 ```
 
-The database is published on port `5432` with these development settings:
+The database runs on port `5432` with these development settings:
 
 | Setting | Value |
 |---------|-------|
@@ -295,7 +329,7 @@ The database is published on port `5432` with these development settings:
 | Password | `changemeinprod!` |
 | Database | `postgres` |
 
-Export matching datasource values before running the application:
+Set matching datasource values before running the app:
 
 ```bash
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/postgres
@@ -309,54 +343,58 @@ Then start the API:
 mvn spring-boot:run
 ```
 
-The API should be available at `http://localhost:8080`.
+The API will be available at `http://localhost:8080`.
 
-> The Compose file currently starts the database only. The application is run separately through Maven or the Dockerfile.
+---
 
 ## Docker Build
 
 The `Dockerfile` uses a two-stage build:
 
-1. A Maven and Eclipse Temurin 21 builder image compiles the project and creates the JAR.
-2. An Eclipse Temurin 21 Alpine runtime image runs that JAR.
+1. A Maven and Eclipse Temurin 21 image compiles the project and builds the JAR.
+2. An Eclipse Temurin 21 Alpine image runs that JAR.
 
-Build and run the application container:
+To build and run the container:
 
 ```bash
 docker build -t springboot-crud-api .
 docker run --rm \
-	-p 8080:8080 \
-	-e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/postgres \
-	-e SPRING_DATASOURCE_USERNAME=postgres \
-	-e SPRING_DATASOURCE_PASSWORD='changemeinprod!' \
-	springboot-crud-api
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/postgres \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD='changemeinprod!' \
+  springboot-crud-api
 ```
 
-The database hostname may differ on Linux or when both services run in a Docker network. In that case, use the database service name and place both services on the same Compose network.
+The database hostname can be different on Linux, or when both services run in a Docker network. In that case, use the database service name and put both services on the same Compose network.
+
+---
 
 ## Testing
 
-The tests are integration-oriented and start the Spring application context with `@SpringBootTest`. Controller tests use `@AutoConfigureMockMvc`, so HTTP requests can be exercised without starting an external web server.
+My tests are integration tests. They start the whole Spring application context with `@SpringBootTest`. The controller tests use `@AutoConfigureMockMvc`, so I can send HTTP requests without starting a separate web server.
 
-The test configuration uses an in-memory H2 database in PostgreSQL compatibility mode:
+The tests use an in-memory H2 database in PostgreSQL compatibility mode:
 
 ```properties
 jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
 ```
 
-The suite covers author creation, retrieval, listing, full and partial updates, deletion, book persistence, book/author relationships, pagination wiring, repository updates and deletes, and both author age query styles.
+They cover creating, retrieving, and listing authors, full and partial updates, deletion, saving books, the book and author relationship, pagination, repository updates and deletes, and both author age queries.
 
-Run it with:
+Run them with:
 
 ```bash
 mvn test
 ```
 
-If the Maven wrapper is completed in the repository, the equivalent command is:
+Once the Maven wrapper is fully set up in the repository, this works too:
 
 ```bash
 ./mvnw test
 ```
+
+---
 
 ## Project Structure
 
@@ -381,108 +419,44 @@ If the Maven wrapper is completed in the repository, the equivalent command is:
 └── README.md                                      # Project documentation
 ```
 
-> The package is named `respositories` in the current codebase. The conventional spelling is `repositories`; changing it would require updating package declarations and imports throughout the project.
+---
 
 ## Design Decisions
 
 ### Why use DTOs?
 
-DTOs create a boundary between the HTTP contract and the database model. Persistence details can change without automatically changing the JSON API, and controllers remain independent of JPA classes.
+DTOs put a boundary between what the API sends and receives and how the data is stored. I can change the database model without automatically changing the JSON, and the controllers don't depend on JPA classes.
 
 ### Why use services?
 
-The service layer gives the application a home for update rules and existence checks. For example, partial updates intentionally ignore null fields, while full updates replace the supplied author data.
+The service layer is a home for the update rules and the existence checks. For example, partial updates deliberately skip null fields, while full updates replace the author data you send.
 
-### Why use `PUT` for book creation and replacement?
+### Why use `PUT` for creating and replacing books?
 
-The ISBN is a stable identifier, so `PUT /books/{isbn}` can be idempotent: sending the same representation to the same ISBN should produce the same stored book. The implementation communicates whether data was inserted or updated through `201` versus `200`.
+An ISBN is a stable identifier, so `PUT /books/{isbn}` can be idempotent: sending the same data to the same ISBN should leave you with the same stored book. The API tells you what happened with `201` (inserted) versus `200` (updated).
 
 ### Why paginate books but not authors?
 
-Books use Spring Data's pageable repository method, which avoids loading the entire book collection into one response as the dataset grows. Authors currently use a simple `findAll()` flow and return every author.
+Books use Spring Data's pageable repository method, so the whole collection doesn't have to load into one response as the dataset grows. Authors just use a simple `findAll()` and return everyone.
+
+---
 
 ## Current Limitations And Production Considerations
 
-- There is no request validation such as `@Valid`, `@NotBlank`, `@Positive`, or ISBN validation.
-- There is no centralized exception handler for malformed requests, database errors, or service exceptions.
-- Delete operations return `204` even when the requested record does not exist.
-- `BookEntity` uses `CascadeType.ALL`, which may propagate deletes or other operations farther than expected.
-- The API has no authentication, authorization, rate limiting, or CORS policy configured.
-- `spring.jpa.hibernate.ddl-auto=update` is convenient for development but is not a migration strategy.
-- The Docker Compose password is a development credential and must not be reused in production.
-- Some endpoint test names and HTTP verbs do not match their intent; the implementation should be treated as the source of truth until those tests are corrected.
-- The Maven wrapper script is present, but this checkout does not include `.mvn/wrapper/maven-wrapper.properties`, so `./mvnw` cannot currently bootstrap Maven by itself.
+BookShelf is a learning project, so it's missing a few things a production API would need. Here's what I know about:
 
-## Database And API Diagram Placeholder
+- There's no request validation, such as `@Valid`, `@NotBlank`, `@Positive`, or ISBN checks.
+- There's no central exception handler for malformed requests, database errors, or service exceptions.
+- Delete operations return `204` even when the record doesn't exist.
+- `BookEntity` uses `CascadeType.ALL`, which can spread deletes and other operations further than expected.
+- There's no authentication, authorization, rate limiting, or CORS policy.
+- `spring.jpa.hibernate.ddl-auto=update` is convenient for development, but it isn't a migration strategy.
+- The Docker Compose password is for development only and shouldn't be reused in production.
+- Some test names and HTTP verbs don't match what the tests actually do, so treat the implementation as the source of truth until I fix them.
+- The Maven wrapper script is there, but this checkout doesn't include `.mvn/wrapper/maven-wrapper.properties`, so `./mvnw` can't download Maven by itself yet.
 
-Add an ER diagram, request-flow image, or screenshots here when you have them. A useful diagram should show:
-
-- `authors` and `books` tables;
-- the `books.author_id` foreign key;
-- the ISBN primary key;
-- the controller-to-service-to-repository request path;
-- the distinction between DTOs and entities.
-
-## ML Model Details Placeholder
-
-This repository does not currently contain an ML model or an inference pipeline. If machine-learning functionality is planned for this project, document it here using the same structure as your previous project:
-
-### Model purpose
-
-Describe the problem the model solves, its inputs, outputs, and how it fits into this REST API.
-
-### Dataset
-
-Add the dataset source, number of records, fields, labels, preprocessing, and train/validation/test split.
-
-### Model architecture
-
-Add the algorithm or architecture, important layers or components, input/output shape, and the reason this approach was selected.
-
-### Training configuration
-
-Add the optimizer, learning rate, loss function, batch size, number of epochs, hardware, and checkpoint strategy.
-
-### Evaluation and results
-
-Add accuracy or task-specific metrics, baselines, confusion-matrix observations, and examples of successful and unsuccessful predictions.
-
-### Deployment and inference flow
-
-Explain where the model is loaded, how requests are preprocessed, how inference is triggered, and what response contract the API returns.
-
-### Model limitations
-
-Document out-of-distribution behavior, confidence limitations, data bias, performance trade-offs, and cases where users should not trust a prediction.
-
-## Learning Notes Placeholder
-
-Use this section for the concepts you learned while building the project. Possible topics include:
-
-- dependency injection through constructor parameters;
-- how Spring Data derives queries from method names;
-- how JPQL differs from SQL;
-- how `Pageable` and `Page<T>` work;
-- why entities and DTOs should be separate;
-- how JPA cascade behavior affects related records;
-- how H2 compatibility mode helps test PostgreSQL-oriented code.
-
-## Future Improvements
-
-Potential next steps include:
-
-- add Bean Validation and meaningful validation error responses;
-- add a global `@ControllerAdvice` exception handler;
-- add author and book search endpoints;
-- add pagination to authors;
-- add sorting and filtering documentation;
-- replace automatic schema updates with Flyway or Liquibase migrations;
-- add API documentation with OpenAPI/Swagger;
-- add unit tests for services and mappers;
-- add Testcontainers-based PostgreSQL integration tests;
-- add authentication and authorization;
-- complete a combined Docker Compose setup for the API and database.
+---
 
 ## License
 
-No license file is currently present in the repository. Add the license information here when one is selected.
+There's no license file in this repository yet.
