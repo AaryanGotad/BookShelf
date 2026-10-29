@@ -1,3 +1,5 @@
+![Bookshelf cover image](assets/docImages/Bookshelf_cover_image.png)
+
 # BookShelf
 
 BookShelf is a small REST API I built to learn Spring Boot. It keeps track of authors and books, saves them in a PostgreSQL database with Spring Data JPA, and lets you create, read, update, and delete both through HTTP endpoints.
